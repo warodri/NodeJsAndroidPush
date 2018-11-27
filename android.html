@@ -1,0 +1,108 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    </head>
+    <body align="center">
+    <h2>
+        My Own Android Push
+    </h2>
+    <!--p>
+        Click this button to show an alert in Android
+    </p>
+    <input type="button" value="Show Alert on Android" 
+           onClick="javascript:showAlertInAndroid()" />
+    -->
+    <p>
+        <hr>
+    </p>
+    <p>
+        Click this button to send a PUSH to Android
+    </p>
+    <table cellpadding="5" align="center">
+        <tr>
+            <td>Channel:</td>
+            <td><input type="text" id="channel" value="ANDROID"</td>
+        </tr>
+        <tr>
+            <td>Username:</td>
+            <td><input type="text" id="username" value="PC"</td>
+        </tr>
+        <tr>
+            <td colspan="2" align="center">
+                <p>
+                    <hr>
+                </p>
+                <input type="button" value="Connect First" 
+                       onClick="javascript:connect()" />
+            </td>
+        </tr>
+    </table>
+
+    <div id="sendChat" style="margin-top:1em;">
+        <p>
+            Text to send: 
+        </p>
+        <input type="text" id="chatText" />
+        <p>
+            <input type="button" value="Send Push!" onClick="javascript:sendPushToAndroid()" />
+        </p>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://www.vaskit.com/node_modules/socket.io-client/dist/socket.io.js"></script>
+        
+    </body>
+</html>
+<script>
+    function showAlert() {
+        alert("Hi Browser!");
+    }
+    function showAlertInAndroid() {
+        Android.showToast("Hi Android!");
+    }
+    function connect() {
+        let channel = $('#channel').val();
+        let username = $('#username').val();
+        s = new MySocket(username, channel);
+    }
+    function sendPushToAndroid() {
+        let chatText = $('#chatText').val();
+        // Don't forget to validate empty chatText!
+        s.sendChat(chatText);
+    }
+</script>
+
+<script>
+    var s;
+    class MySocket {
+
+        constructor(username, channel) {
+            this.username = username;
+            this.channel = channel;
+            this.socket = io.connect('https://www.vaskit.com:8083');
+            let _this = this;
+            this.socket.on('connect', function() {
+                console.log("We're connected to the server!");
+                _this.addUserToChannel();
+                $('#divMessages').show();
+            });
+            this.socket.on('updateChat', function(chatText) {
+                console.log("New chat message: " + chatText);
+                $('#chatMessages').prepend(chatText + '\n');
+                Android.showToast("Hi Android!");
+            });
+        }
+
+        addUserToChannel() {
+            console.log("Once connected, users must be added to a channel");
+            this.socket.emit('addUserTo', this.username + '|' + this.channel);
+        }
+
+        sendChat(chatText) {
+            this.socket.emit('sendChat', chatText);
+        }
+
+    }
+
+
+</script>
